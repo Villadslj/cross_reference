@@ -115,7 +115,7 @@
 
   $('#delete-category').on('click', function () {
     showLoader()
-    const ref = $('#ref_code').html().substr(1)
+    const ref = $('#ref_code').text().substr(1)
     const currentName = tempSettings[$('#category-select').val()].name
     const labCode = getCurrentLabCode()
     
@@ -123,7 +123,7 @@
 
     $(this).css('display', 'none')
     google.script.run.withSuccessHandler(revertToFirstCategory).removePair(ref)
-    $('#category-select option:contains("' + currentName + '")').remove()
+    $('#category-select option').filter(function () { return $(this).text() === currentName }).remove()
 
     refCodes = arrayMinus(refCodes, ref)
   })
@@ -167,7 +167,7 @@
       const id = '#' + type
       const setting = tempSettings[labCode][type]
 
-      $(id + '_code').html('#' + setting.code)
+      $(id + '_code').text('#' + setting.code)
       $(id + '_text').val(setting.text)
       $(id + '_suffix').val(setting.suffix)
 
@@ -182,7 +182,7 @@
 
   const idIsSelected = id => $(id).hasClass('style-button--selected') || null
   const getColorValue = id => $(id).val() != undefined ? getColorHex($(id).val()) : null
-  const getCurrentLabCode = () => $('#lab_code').html().substr(1)
+  const getCurrentLabCode = () => $('#lab_code').text().substr(1)
 
   const addTempEntry = (labCode, name) => tempSettings[labCode] = { name, lab: {}, ref: {} }
 
@@ -310,7 +310,7 @@
       '.input-text',
     ]).val('')
 
-    $('#ref_code').html('#')
+    $('#ref_code').text('#')
     $('.preview__text').css({
       'color':            'unset',
       'font-weight':      'unset',
@@ -367,8 +367,8 @@
     }
 
     $(this).attr('maxlength', inputLimit)
-    $('#lab_code').html('#' + labCode)
-    $('#ref_code').html('#' + refCode)
+    $('#lab_code').text('#' + labCode)
+    $('#ref_code').text('#' + refCode)
   })
 
 

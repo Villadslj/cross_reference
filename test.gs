@@ -50,7 +50,7 @@ const areDeepEqual = (a, b, strict=true) => {
       }
     }
   } else {
-    return string ? a === b : a == b
+    return strict ? a === b : a == b
   }
 
   return true
