@@ -1,6 +1,12 @@
 <?!= include('loader-style'); ?>
 
-<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.10.81/pdf.js'>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+  integrity='sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e'
+  crossorigin='anonymous' referrerpolicy='no-referrer'>
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  integrity='sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2'
+  crossorigin='anonymous' referrerpolicy='no-referrer'>
 </script>
 
 <div class="loader">
@@ -14,13 +20,19 @@
 <span>Long, complex documents can<br />take minutes to process</span>
 
 <script>
-  PDFJS.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.10.81/pdf.worker.js'
-  window.onload = google.script.run.withSuccessHandler(countFigures).getDocAsPDF();
+  // The worker script is loaded above as a regular script (window.pdfjsWorker),
+  // so PDF processing runs entirely inside this dialog: no document data ever
+  // leaves the page and no additional scripts are fetched at runtime.
+  window.addEventListener('load', function () {
+    google.script.run.withSuccessHandler(countFigures).getDocAsPDF()
+  })
 
   function getAllPageTexts(blob) {
-    const pdf = PDFJS.getDocument({ data: blob })
-    return pdf.then(pdf => {
-      const maxPages = pdf.pdfInfo.numPages
+    // isEvalSupported: false prevents embedded PDF content (e.g. malicious
+    // font matrices) from ever being evaluated as JavaScript
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(blob), isEvalSupported: false })
+    return loadingTask.promise.then(pdf => {
+      const maxPages = pdf.numPages
       const pageTexts = []
       for (let i = 1; i <= maxPages; i++) {
         pageTexts.push(pdf.getPage(i).then(page => page.getTextContent()))
@@ -28,7 +40,7 @@
       return Promise.all(pageTexts)
     })
   }
-  
+
   const countLabels = sign => pageText => JSON.stringify(pageText).split(sign).length - 1
 
   function countFigures(blob) {
